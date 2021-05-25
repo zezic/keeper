@@ -7,8 +7,12 @@ edition = "2018"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+clickhouse = "0.6"
+reflection = "0.1"
 tokio = { version = "1", features = ["full"] }
 serde = { version = "1.0", features = ["rc"] }
 serde_derive = "1.0"
 pretty_env_logger = "0.4"
 warp = "0.3"
+strum = "0.13.0"
+strum_macros = "0.13.0"

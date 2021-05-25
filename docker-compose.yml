@@ -2,8 +2,15 @@ version: '3.7'
 services:
   clickhouse:
     image: yandex/clickhouse-server:21.5.5.12-alpine
+    volumes:
+      - "./init-db.sh:/docker-entrypoint-initdb.d/init-db.sh"
     ulimits:
       nofile: 262144
+    ports:
+      - 8123:8123
+    environment:
+      - CLICKHOUSE_USER=keeper
+      - CLICKHOUSE_PASSWORD=12345
   api:
     build: ./
     init: true
