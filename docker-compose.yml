@@ -1,0 +1,11 @@
+version: '3.7'
+services:
+  clickhouse:
+    image: yandex/clickhouse-server:21.5.5.12-alpine
+    ulimits:
+      nofile: 262144
+  api:
+    build: ./
+    init: true
+    ports:
+      - 3030:3030
