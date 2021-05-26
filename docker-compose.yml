@@ -8,11 +8,15 @@ services:
       nofile: 262144
     ports:
       - 8123:8123
-    environment:
-      - CLICKHOUSE_USER=keeper
-      - CLICKHOUSE_PASSWORD=12345
+    env_file:
+      - .env
+    # environment:
+    #   - CLICKHOUSE_USER
+    #   - CLICKHOUSE_PASSWORD
   api:
     build: ./
     init: true
     ports:
       - 3030:3030
+    env_file:
+      - .env

@@ -10,6 +10,19 @@ A toy logging service
 ## Running
 
 ```shell
+cp .env.example .env
 docker-compose up
 ```
-Then navigate to http://localhost:3030
+
+## Usage
+
+Using [HTTPie](https://httpie.io/):
+
+```shell
+http :3030/log level=INFO message='Service is starting up...'
+http :3030/log level=INFO message='Service is shutting down...'
+```
+
+```shell
+http :3030/log level==INFO timestamp_ge==0 timestamp_le==$(date +%s%N)
+```
