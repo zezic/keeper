@@ -1,18 +1,17 @@
-FROM ekidd/rust-musl-builder:1.51.0 as builder
+FROM rust:1.52.1-slim-buster as builder
 
-RUN mkdir keeper
-WORKDIR ./keeper
+RUN apt update && apt -y install build-essential
+
+WORKDIR app
 COPY ./Cargo.lock ./Cargo.lock
 COPY ./Cargo.toml ./Cargo.toml
 ADD ./src ./src
 RUN cargo build --release
 
-FROM alpine:3.13.5
+FROM rust:1.52.1-slim-buster as runtime
 
 EXPOSE 3030
 
-COPY --from=builder /home/rust/src/keeper/target/x86_64-unknown-linux-musl/release/keeper /usr/src/app/keeper
+COPY --from=builder /app/target/release/keeper /usr/local/bin
 
-WORKDIR /usr/src/app
-
-CMD ["./keeper"]
+ENTRYPOINT ["./usr/local/bin/keeper"]
