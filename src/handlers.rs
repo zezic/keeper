@@ -1,4 +1,4 @@
-use crate::types::{LogEntry, LogEntryInput, LogEntryOutput, LogLevel, LogLevelInternal, ErrorMessage};
+use crate::types::{LogEntry, LogEntryInput, LogEntryOutput, LogLevelInternal, LogViewQuery, ErrorMessage};
 use crate::db::{Db};
 use std::convert::Infallible;
 use std::time::{SystemTime, UNIX_EPOCH};
@@ -11,12 +11,7 @@ pub async fn create_log_entry(log_entry_input: LogEntryInput, db: Db) -> Result<
 
     let log_entry = LogEntry {
         timestamp: micros as u64,
-        level: match log_entry_input.level {
-            LogLevel::DEBUG => LogLevelInternal::DEBUG,
-            LogLevel::INFO => LogLevelInternal::INFO,
-            LogLevel::WARNING => LogLevelInternal::WARNING,
-            LogLevel::ERROR => LogLevelInternal::ERROR
-        },
+        level: log_entry_input.level.into(),
         message: log_entry_input.message
     };
 
@@ -40,10 +35,16 @@ pub async fn create_log_entry(log_entry_input: LogEntryInput, db: Db) -> Result<
     }
 }
 
-pub async fn list_log_entries(db: Db) -> Result<WithStatus<Json>, Infallible> {
+pub async fn list_log_entries(query: LogViewQuery, db: Db) -> Result<WithStatus<Json>, Infallible> {
+    let level_internal: LogLevelInternal = query.level.clone().into();
+
     let log_entries = async {
         let db = db.lock().await;
-        let entries = db.query("SELECT ?fields FROM entries").fetch_all::<LogEntry>().await?;
+        let entries = db.query("SELECT ?fields FROM entries WHERE level == ? AND timestamp BETWEEN fromUnixTimestamp64Nano(toInt64(?)) AND fromUnixTimestamp64Nano(toInt64(?))")
+            .bind(level_internal as u8)
+            .bind(query.timestamp_ge)
+            .bind(query.timestamp_le)
+            .fetch_all::<LogEntry>().await?;
         Ok::<Vec<LogEntry>, clickhouse::error::Error>(entries)
     }.await;
 
@@ -51,12 +52,7 @@ pub async fn list_log_entries(db: Db) -> Result<WithStatus<Json>, Infallible> {
         Ok(log_entries) => {
             let log_entries_output: Vec<LogEntryOutput> = log_entries.iter().map(|entry| LogEntryOutput {
                 timestamp: entry.timestamp,
-                level: match entry.level {
-                    LogLevelInternal::DEBUG => LogLevel::DEBUG,
-                    LogLevelInternal::INFO => LogLevel::INFO,
-                    LogLevelInternal::WARNING => LogLevel::WARNING,
-                    LogLevelInternal::ERROR => LogLevel::ERROR
-                },
+                level: entry.level.clone().into(),
                 message: entry.message.clone()
             }).collect();
             Ok(warp::reply::with_status(

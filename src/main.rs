@@ -40,6 +40,7 @@ mod filters {
     pub fn log_entries_get(db: Db) -> impl Filter<Extract = impl warp::Reply, Error = warp::Rejection> + Clone {
         warp::path!("log")
         .and(warp::get())
+        .and(warp::query())
         .and(with_db(db))
         .and_then(handlers::list_log_entries)
     }
