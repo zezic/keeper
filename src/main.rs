@@ -1,8 +1,8 @@
 #![deny(warnings)]
 
 use warp::{Filter};
-#[macro_use]
-extern crate num_derive;
+// #[macro_use]
+// extern crate num_derive;
 
 mod types;
 mod handlers;
@@ -38,7 +38,7 @@ mod filters {
     }
 
     pub fn log_entries_get(db: Db) -> impl Filter<Extract = impl warp::Reply, Error = warp::Rejection> + Clone {
-        warp::path!("entries")
+        warp::path!("log")
         .and(warp::get())
         .and(with_db(db))
         .and_then(handlers::list_log_entries)
